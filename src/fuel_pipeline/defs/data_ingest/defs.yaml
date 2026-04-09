@@ -1,0 +1,13 @@
+type: dagster_dlt.DltLoadCollectionComponent
+
+attributes:
+  loads:
+    - source: .loads.cso_source
+      pipeline: .loads.cso_pipeline
+      translation:
+        group_name: cso_data
+        description: "Loads the fuel relevant data from data.cso.ie"
+        metadata:
+          resource_name: "{{ resource.name }}"
+          pipeline_name: "{{ pipeline.pipeline_name }}"
+          is_transformer: "{{ resource.is_transformer }}"
