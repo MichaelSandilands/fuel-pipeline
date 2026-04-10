@@ -1,6 +1,6 @@
 
 import dlt
-from .cso import cso_source
+from .cso.source import cso_source
 
 cso_source = cso_source()
 cso_pipeline = dlt.pipeline(
