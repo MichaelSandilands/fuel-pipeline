@@ -2,6 +2,7 @@ type: dagster_dlt.DltLoadCollectionComponent
 
 attributes:
   loads:
+    # --- CSO ---
     - source: .loads.cso_source
       pipeline: .loads.cso_pipeline
       translation:
@@ -11,3 +12,14 @@ attributes:
           resource_name: "{{ resource.name }}"
           pipeline_name: "{{ pipeline.pipeline_name }}"
           is_transformer: "{{ resource.is_transformer }}"
+
+    # --- Eurostat ---
+    # - source: .loads.eurostat_source
+    #   pipeline: .loads.eurostat_pipeline
+    #   translation:
+    #     group_name: eurostat_data
+    #     description: "Loads fuel relevant data from Eurostat"
+    #     metadata:
+    #       resource_name: "{{ resource.name }}"
+    #       pipeline_name: "{{ pipeline.pipeline_name }}"
+    #       is_transformer: "{{ resource.is_transformer }}"
