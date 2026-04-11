@@ -1,6 +1,8 @@
 # loads.py
 import os
+
 import dlt
+
 from .cso.source import cso_source
 
 
@@ -21,6 +23,7 @@ def _pipeline_by_deployment(pipeline_name: str, dataset_name: str) -> dlt.Pipeli
         destination=destinations[deployment_name],
         dataset_name=dataset_names[deployment_name],
     )
+
 
 # --- CSO ---
 CSO_TABLES = ["CPM02"]  # Add tables here as needed, e.g. "CPM12"
