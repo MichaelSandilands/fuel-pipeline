@@ -6,6 +6,7 @@ dependencies = [
     "dagster==1.12.22",
     "dagster-dlt>=0.28.22",
     "dagster-duckdb>=0.28.22",
+    "ruff>=0.15.10",
 ]
 
 [dependency-groups]

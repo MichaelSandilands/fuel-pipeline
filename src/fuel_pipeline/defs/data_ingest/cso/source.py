@@ -1,9 +1,12 @@
+import datetime
 from typing import Any
+
 import dlt
-from dlt.sources.helpers import requests
 from dagster import get_dagster_logger
+from dlt.sources.helpers import requests
 
 CSO_BASE_URL = "https://ws.cso.ie/public/api.restful/PxStat.Data.Cube_API.ReadDataset"
+
 
 @dlt.source(name="cso", max_table_nesting=0)
 def cso_source(tables: list[str] | None = None) -> Any:
@@ -21,9 +24,17 @@ def cso_source(tables: list[str] | None = None) -> Any:
 
     def _make_resource(table_id: str):
 
-        @dlt.resource(name=table_id.lower(), write_disposition="append")
+        @dlt.resource(
+            name=table_id.lower(),
+            write_disposition="append",
+            columns={
+                "extraction_timestamp": {"data_type": "timestamp"},
+                "cso_updated_at": {"data_type": "timestamp"},
+                "raw_payload": {"data_type": "json"},
+            },
+        )
         def _resource():
-            
+
             # Log the start of an external API call
             logger.info(f"Initiating CSO API request for table: {table_id}")
 
@@ -41,19 +52,32 @@ def cso_source(tables: list[str] | None = None) -> Any:
             # Safety check
             if not current_updated:
                 # Log errors right before they raise for easier debugging in the UI
-                logger.error(f"Payload validation failed: 'updated' field missing for {table_id}")
-                raise ValueError(f"The 'updated' field is missing from the CSO {table_id} payload!")
+                logger.error(
+                    f"Payload validation failed: 'updated' field missing for {table_id}"
+                )
+                raise ValueError(
+                    f"The 'updated' field is missing from the CSO {table_id} payload!"
+                )
 
             # 2.3 - Run pipeline if changed
             if current_updated != last_val:
-                # Log successful state changes / data updates
-                logger.info(f"New data detected for {table_id}. Previous: {last_val}, Current: {current_updated}. Yielding payload.")
-                yield data
+                logger.info(f"New data detected for {table_id}. Yielding payload.")
+
+                # Wrap the payload to enforce a strict, 3-column raw table schema
+                yield {
+                    "extraction_timestamp": datetime.datetime.now(
+                        datetime.timezone.utc
+                    ),
+                    "cso_updated_at": current_updated,
+                    "raw_payload": data,  # DLT can be configured to store this as JSONB
+                }
 
                 dlt.current.resource_state()["last_updated"] = current_updated
             else:
                 # Log skipped executions due to idempotency
-                logger.info(f"No new updates for {table_id} (Last updated: {last_val}). Skipping append.")
+                logger.info(
+                    f"No new updates for {table_id} (Last updated: {last_val}). Skipping append."
+                )
 
         return _resource
 
